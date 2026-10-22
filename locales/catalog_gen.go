@@ -1397,6 +1397,106 @@ func (msgs Messages) CmdFileUninstallCLI() string {
 	return Catalog.Format(msgs.locale, "cmdFileUninstallCLI", nil)
 }
 
+// CmdForkBuild says "Fork: Build & Install App"
+// in the language the app shows.
+func CmdForkBuild() string { return In(i18n.Locale()).CmdForkBuild() }
+
+// CmdForkBuild says "Fork: Build & Install App"
+// in the language of msgs.
+func (msgs Messages) CmdForkBuild() string {
+	return Catalog.Format(msgs.locale, "cmdForkBuild", nil)
+}
+
+// CmdForkDev says "Fork: Mayoi Dev"
+// in the language the app shows.
+func CmdForkDev() string { return In(i18n.Locale()).CmdForkDev() }
+
+// CmdForkDev says "Fork: Mayoi Dev"
+// in the language of msgs.
+func (msgs Messages) CmdForkDev() string {
+	return Catalog.Format(msgs.locale, "cmdForkDev", nil)
+}
+
+// CmdForkNewBranch says "Fork: New Branch…"
+// in the language the app shows.
+func CmdForkNewBranch() string { return In(i18n.Locale()).CmdForkNewBranch() }
+
+// CmdForkNewBranch says "Fork: New Branch…"
+// in the language of msgs.
+func (msgs Messages) CmdForkNewBranch() string {
+	return Catalog.Format(msgs.locale, "cmdForkNewBranch", nil)
+}
+
+// CmdForkPanel says "Fork: Panel"
+// in the language the app shows.
+func CmdForkPanel() string { return In(i18n.Locale()).CmdForkPanel() }
+
+// CmdForkPanel says "Fork: Panel"
+// in the language of msgs.
+func (msgs Messages) CmdForkPanel() string {
+	return Catalog.Format(msgs.locale, "cmdForkPanel", nil)
+}
+
+// CmdForkPrFork says "Fork: Open PR in Own Fork…"
+// in the language the app shows.
+func CmdForkPrFork() string { return In(i18n.Locale()).CmdForkPrFork() }
+
+// CmdForkPrFork says "Fork: Open PR in Own Fork…"
+// in the language of msgs.
+func (msgs Messages) CmdForkPrFork() string {
+	return Catalog.Format(msgs.locale, "cmdForkPrFork", nil)
+}
+
+// CmdForkPrUpstream says "Fork: Open PR to Upstream"
+// in the language the app shows.
+func CmdForkPrUpstream() string { return In(i18n.Locale()).CmdForkPrUpstream() }
+
+// CmdForkPrUpstream says "Fork: Open PR to Upstream"
+// in the language of msgs.
+func (msgs Messages) CmdForkPrUpstream() string {
+	return Catalog.Format(msgs.locale, "cmdForkPrUpstream", nil)
+}
+
+// CmdForkPush says "Fork: Push Branch"
+// in the language the app shows.
+func CmdForkPush() string { return In(i18n.Locale()).CmdForkPush() }
+
+// CmdForkPush says "Fork: Push Branch"
+// in the language of msgs.
+func (msgs Messages) CmdForkPush() string {
+	return Catalog.Format(msgs.locale, "cmdForkPush", nil)
+}
+
+// CmdForkRestack says "Fork: Rebase onto main…"
+// in the language the app shows.
+func CmdForkRestack() string { return In(i18n.Locale()).CmdForkRestack() }
+
+// CmdForkRestack says "Fork: Rebase onto main…"
+// in the language of msgs.
+func (msgs Messages) CmdForkRestack() string {
+	return Catalog.Format(msgs.locale, "cmdForkRestack", nil)
+}
+
+// CmdForkStatus says "Fork: Status"
+// in the language the app shows.
+func CmdForkStatus() string { return In(i18n.Locale()).CmdForkStatus() }
+
+// CmdForkStatus says "Fork: Status"
+// in the language of msgs.
+func (msgs Messages) CmdForkStatus() string {
+	return Catalog.Format(msgs.locale, "cmdForkStatus", nil)
+}
+
+// CmdForkSync says "Fork: Sync Upstream"
+// in the language the app shows.
+func CmdForkSync() string { return In(i18n.Locale()).CmdForkSync() }
+
+// CmdForkSync says "Fork: Sync Upstream"
+// in the language of msgs.
+func (msgs Messages) CmdForkSync() string {
+	return Catalog.Format(msgs.locale, "cmdForkSync", nil)
+}
+
 // CmdGitAbort says "Abort Merge, Rebase or Cherry-Pick…"
 // in the language the app shows.
 func CmdGitAbort() string { return In(i18n.Locale()).CmdGitAbort() }
@@ -4413,6 +4513,106 @@ func ForwardPortEllipsis() string { return In(i18n.Locale()).ForwardPortEllipsis
 // in the language of msgs.
 func (msgs Messages) ForwardPortEllipsis() string {
 	return Catalog.Format(msgs.locale, "forwardPortEllipsis", nil)
+}
+
+// ForkBaseHint says "empty: main"
+// in the language the app shows.
+func ForkBaseHint() string { return In(i18n.Locale()).ForkBaseHint() }
+
+// ForkBaseHint says "empty: main"
+// in the language of msgs.
+func (msgs Messages) ForkBaseHint() string {
+	return Catalog.Format(msgs.locale, "forkBaseHint", nil)
+}
+
+// ForkBaseTitle says "Base of {name}"
+// in the language the app shows.
+func ForkBaseTitle(name string) string { return In(i18n.Locale()).ForkBaseTitle(name) }
+
+// ForkBaseTitle says "Base of {name}"
+// in the language of msgs.
+func (msgs Messages) ForkBaseTitle(name string) string {
+	return Catalog.Format(msgs.locale, "forkBaseTitle", map[string]any{"name": name})
+}
+
+// ForkBusy says "Another action is still running"
+// in the language the app shows.
+func ForkBusy() string { return In(i18n.Locale()).ForkBusy() }
+
+// ForkBusy says "Another action is still running"
+// in the language of msgs.
+func (msgs Messages) ForkBusy() string {
+	return Catalog.Format(msgs.locale, "forkBusy", nil)
+}
+
+// ForkNewBranchHint says "“feat/” is added without a slash"
+// in the language the app shows.
+func ForkNewBranchHint() string { return In(i18n.Locale()).ForkNewBranchHint() }
+
+// ForkNewBranchHint says "“feat/” is added without a slash"
+// in the language of msgs.
+func (msgs Messages) ForkNewBranchHint() string {
+	return Catalog.Format(msgs.locale, "forkNewBranchHint", nil)
+}
+
+// ForkNewBranchTitle says "New Fork Branch"
+// in the language the app shows.
+func ForkNewBranchTitle() string { return In(i18n.Locale()).ForkNewBranchTitle() }
+
+// ForkNewBranchTitle says "New Fork Branch"
+// in the language of msgs.
+func (msgs Messages) ForkNewBranchTitle() string {
+	return Catalog.Format(msgs.locale, "forkNewBranchTitle", nil)
+}
+
+// ForkNotOnFeature says "Switch to a feature branch first"
+// in the language the app shows.
+func ForkNotOnFeature() string { return In(i18n.Locale()).ForkNotOnFeature() }
+
+// ForkNotOnFeature says "Switch to a feature branch first"
+// in the language of msgs.
+func (msgs Messages) ForkNotOnFeature() string {
+	return Catalog.Format(msgs.locale, "forkNotOnFeature", nil)
+}
+
+// ForkPrBaseHint says "the branch this one is stacked on"
+// in the language the app shows.
+func ForkPrBaseHint() string { return In(i18n.Locale()).ForkPrBaseHint() }
+
+// ForkPrBaseHint says "the branch this one is stacked on"
+// in the language of msgs.
+func (msgs Messages) ForkPrBaseHint() string {
+	return Catalog.Format(msgs.locale, "forkPrBaseHint", nil)
+}
+
+// ForkPrBaseTitle says "Fork PR Base"
+// in the language the app shows.
+func ForkPrBaseTitle() string { return In(i18n.Locale()).ForkPrBaseTitle() }
+
+// ForkPrBaseTitle says "Fork PR Base"
+// in the language of msgs.
+func (msgs Messages) ForkPrBaseTitle() string {
+	return Catalog.Format(msgs.locale, "forkPrBaseTitle", nil)
+}
+
+// ForkRestackHint says "empty: dependency already merged"
+// in the language the app shows.
+func ForkRestackHint() string { return In(i18n.Locale()).ForkRestackHint() }
+
+// ForkRestackHint says "empty: dependency already merged"
+// in the language of msgs.
+func (msgs Messages) ForkRestackHint() string {
+	return Catalog.Format(msgs.locale, "forkRestackHint", nil)
+}
+
+// ForkRestackTitle says "Rebase onto main"
+// in the language the app shows.
+func ForkRestackTitle() string { return In(i18n.Locale()).ForkRestackTitle() }
+
+// ForkRestackTitle says "Rebase onto main"
+// in the language of msgs.
+func (msgs Messages) ForkRestackTitle() string {
+	return Catalog.Format(msgs.locale, "forkRestackTitle", nil)
 }
 
 // GitNeedsAuth says "Git needs to sign in: run the command in the terminal once."

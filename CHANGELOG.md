@@ -5,6 +5,13 @@ needs a `## <version>` section here, or its build fails.
 
 ## Unreleased
 
+- The fork panel, on the personal branch only: **Fork → Fork Panel** opens
+  the fork's whole git workflow — syncing upstream, status, branches and
+  their bases, pushes, PRs upstream or stacked in the fork, rebases onto
+  main, dev and build — as a page in a web view over the window rather
+  than the menu's commands in terminals, streaming the output of each
+  into it. Escape or a click outside dismisses it; the page and its
+  output stay for the next open.
 - The Grok Bot theme: **View → Theme → Grok Bot** takes the Grok Bot app's
   Sand Light and Sand Dark colors, light or dark as the Appearance is:
   white or near-black greys, near-black or near-white buttons, and its blue

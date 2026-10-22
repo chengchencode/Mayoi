@@ -166,6 +166,7 @@ func (a *app) view(c *ui.Context) {
 	a.remotePickerView(c)
 	a.conflictsView(c)
 	a.promptView(c)
+	a.forkPanelView(c)
 	a.confirmView(c)
 	a.signinView(c)
 	if !a.dialogBuilt {

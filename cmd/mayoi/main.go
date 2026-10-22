@@ -301,6 +301,8 @@ func main() {
 	// updater never checks by itself. Development builds never check.
 	mygo.Use(native.New(updater.Options{DisableAutomaticChecks: true}))
 	m := &mayoi{}
+	// The service the fork panel's page calls, mygo.call("ForkPanel.X").
+	mygo.BindAs("ForkPanel", &forkService{m: m})
 	mygo.App.OnSecondInstance(func(args []string, wd string) {
 		if paths := argPaths(args, wd); len(paths) > 0 {
 			m.open(paths)

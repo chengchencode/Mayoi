@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/plugins/terminal"
 	"github.com/egoist/mygo/ui"
 
@@ -281,6 +282,10 @@ type app struct {
 	// dialogBuilt says a build of the view built one.
 	dialog      string
 	dialogBuilt bool
+	// forkPanel is the web view of the fork panel (forkpanel.go), which
+	// keeps its page while hidden, and forkShow whether its overlay shows.
+	forkPanel *mygo.WebView
+	forkShow  bool
 
 	errors []string // to show as toasts
 	// fails counts the errors shown, which stop the commands of
