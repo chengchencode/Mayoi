@@ -224,6 +224,11 @@ func (a *app) openFileIn(col *column, at int, path string, focus bool) {
 		if at := col.showing(doc); at >= 0 {
 			a.keepTab(col.tabs[at])
 			a.activate(col, at, focus)
+			if a.openingText {
+				if ed := col.tabs[at].ed; ed != nil && ed.preview != nil {
+					a.setPreview(ed, false)
+				}
+			}
 			return
 		}
 	} else if remote.Is(path) {
@@ -253,8 +258,12 @@ func (a *app) openFileIn(col *column, at int, path string, focus bool) {
 		}
 	}
 	at = min(max(at, 0), len(col.tabs))
-	a.addTab(col, at, &colTab{ed: newEditor(doc), transient: a.opening})
+	t := &colTab{ed: newEditor(doc), transient: a.opening}
+	a.addTab(col, at, t)
 	a.activate(col, at, focus)
+	if a.settings.MarkdownPreview && !a.openingText && isMarkdown(t.ed.document) {
+		a.setPreview(t.ed, true)
+	}
 }
 
 // showingFile returns the place of the tab of the column that shows the
@@ -822,11 +831,16 @@ func (a *app) rememberTabs() {
 				ts.Wrap = a.ownWrap(v.wrap, v.wrapGen)
 			}
 			if ed := t.ed; ed != nil {
-				ts.Sel, ts.ScrollX, ts.ScrollY = ed.sel, ed.hscroll.X, ed.vscroll.Y
-				if ed.hidden {
-					ts.ScrollY = ed.hiddenY
+				if saved := ed.restoreTab; saved != nil {
+					ts.Preview, ts.Sel = saved.Preview, saved.Sel
+					ts.ScrollX, ts.ScrollY, ts.Wrap = saved.ScrollX, saved.ScrollY, saved.Wrap
+				} else {
+					ts.Sel, ts.ScrollX, ts.ScrollY = ed.sel, ed.hscroll.X, ed.vscroll.Y
+					if ed.hidden {
+						ts.ScrollY = ed.hiddenY
+					}
+					ts.Wrap = a.ownWrap(ed.wrap, ed.wrapGen)
 				}
-				ts.Wrap = a.ownWrap(ed.wrap, ed.wrapGen)
 			}
 			cs.Tabs = append(cs.Tabs, ts)
 			if i == col.active {
@@ -920,6 +934,7 @@ func (a *app) restoreEditor(ed *editor, ts settings.Tab) {
 		w := *ts.Wrap
 		ed.wrap, ed.wrapGen = &w, a.settings.WrapGen
 	}
+	a.setPreview(ed, ts.Preview)
 }
 
 // restoreTabs opens the columns of the last session and their files, as
@@ -986,11 +1001,10 @@ func (a *app) restoreTabs() {
 				// A remote file that is gone closes its tab once read.
 				if _, err := os.Stat(ts.File); err == nil || remote.Is(ts.File) {
 					a.opening = ts.Transient
+					a.openingText = true
 					a.openFileIn(col, len(col.tabs), ts.File, false)
+					a.openingText = false
 					a.opening = false
-					if t := col.tab(); ts.Preview && len(col.tabs) > n && t.ed != nil && canPreview(t.ed.document) {
-						a.setPreview(t.ed, true)
-					}
 				}
 			case ts.Untitled != "":
 				a.restoreUntitled(col, ts)
