@@ -119,12 +119,12 @@ func (a *app) reopenClosed() {
 			return
 		}
 		if ed := col.tab().ed; ed != nil {
+			if canPreview(ed.document) {
+				a.setPreview(ed, c.preview)
+			}
 			ed.sel, ed.caret = c.sel, c.caret
 			ed.vscroll.Y, ed.hscroll.X = c.y, c.x
 			ed.wrap, ed.wrapGen = c.wrap, c.wrapGen
-			if c.preview {
-				a.setPreview(ed, true)
-			}
 			a.focusTab(col.tab())
 		}
 		return

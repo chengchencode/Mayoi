@@ -224,6 +224,11 @@ func (a *app) openFileIn(col *column, at int, path string, focus bool) {
 		if at := col.showing(doc); at >= 0 {
 			a.keepTab(col.tabs[at])
 			a.activate(col, at, focus)
+			if a.openingText {
+				if ed := col.tabs[at].ed; ed != nil && ed.preview != nil {
+					a.setPreview(ed, false)
+				}
+			}
 			return
 		}
 	} else if remote.Is(path) {
@@ -256,7 +261,7 @@ func (a *app) openFileIn(col *column, at int, path string, focus bool) {
 	t := &colTab{ed: newEditor(doc), transient: a.opening}
 	a.addTab(col, at, t)
 	a.activate(col, at, focus)
-	if a.settings.MarkdownPreview && isMarkdown(t.ed.document) {
+	if a.settings.MarkdownPreview && !a.openingText && isMarkdown(t.ed.document) {
 		a.setPreview(t.ed, true)
 	}
 }
@@ -992,8 +997,8 @@ func (a *app) restoreTabs() {
 					a.opening = ts.Transient
 					a.openFileIn(col, len(col.tabs), ts.File, false)
 					a.opening = false
-					if t := col.tab(); ts.Preview && len(col.tabs) > n && t.ed != nil && canPreview(t.ed.document) {
-						a.setPreview(t.ed, true)
+					if t := col.tab(); len(col.tabs) > n && t.ed != nil && canPreview(t.ed.document) {
+						a.setPreview(t.ed, ts.Preview)
 					}
 				}
 			case ts.Untitled != "":

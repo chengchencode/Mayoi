@@ -236,6 +236,9 @@ func TestMarkdownPreviewOnOpen(t *testing.T) {
 	if !hs.tt.HasText("Page") || !hs.tt.HasText("Text {expr}.") {
 		t.Fatal("MDX did not render")
 	}
+	if hs.tt.HasText("import { Chart }") {
+		t.Fatal("MDX import was rendered")
+	}
 	// The setting off opens the text.
 	a.settings.MarkdownPreview = false
 	path = hs.path("plain.md")
@@ -244,6 +247,72 @@ func TestMarkdownPreviewOnOpen(t *testing.T) {
 	hs.settle()
 	if a.activeEditor().preview != nil {
 		t.Fatal("markdownPreview off still previewed")
+	}
+}
+
+// A Markdown tab left showing its source restores and reopens as its
+// source, the markdownPreview setting saying preview notwithstanding.
+func TestMarkdownPreviewKeepsSource(t *testing.T) {
+	hs := newHarness(t, false)
+	a := hs.a
+	a.settings.MarkdownPreview = true
+	a.openFile(hs.path("README.md"), true)
+	hs.until("preview", func() bool {
+		return a.activeEditor().preview != nil && a.activeEditor().preview.loaded
+	})
+	a.run("view.togglePreview")
+	hs.settle()
+	if a.activeEditor().preview != nil {
+		t.Fatal("toggle to source failed")
+	}
+	a.rememberTabs()
+	if a.window.Columns[0].Tabs[0].Preview {
+		t.Fatal("source tab was saved previewed")
+	}
+
+	b := newApp(&fakeHost{folder: hs.root}, a.settings, a.window)
+	t.Cleanup(b.shutdown)
+	bt := ui.NewTester(b.view, 1200, 760)
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		step(bt)
+		if len(b.cols) > 0 && b.cols[0].tab() != nil && b.cols[0].tab().ed != nil {
+			break
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if b.cols[0].tab().ed.preview != nil {
+		t.Fatal("restore previewed a tab left as source")
+	}
+	b.run("file.close")
+	b.run("file.reopenClosed")
+	step(bt)
+	if b.activeEditor() == nil || b.activeEditor().preview != nil {
+		t.Fatal("reopen previewed a tab closed as source")
+	}
+}
+
+// An open that selects or edits the text — a search match, a line to go
+// to — opens the source whatever markdownPreview says.
+func TestMarkdownOpensForText(t *testing.T) {
+	hs := newHarness(t, true)
+	a := hs.a
+	a.settings.MarkdownPreview = true
+	a.openFileAt(hs.path("README.md"), 2, true)
+	hs.settle()
+	if a.activeEditor() == nil || a.activeEditor().preview != nil {
+		t.Fatal("a positioned open was previewed")
+	}
+	a.run("view.togglePreview")
+	hs.until("preview", func() bool {
+		return a.activeEditor().preview != nil && a.activeEditor().preview.loaded
+	})
+	// A search match over it shows the text again.
+	m := searchMatch{line: 1, text: "e"}
+	a.openMatch(&searchFile{path: hs.path("README.md")}, m, true)
+	hs.settle()
+	if a.activeEditor() == nil || a.activeEditor().preview != nil {
+		t.Fatal("a search match was previewed")
 	}
 }
 
