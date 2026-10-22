@@ -154,7 +154,7 @@ type markdownBlock struct {
 
 func isMarkdown(d *document) bool {
 	ext := filepath.Ext(d.path)
-	return strings.EqualFold(ext, ".md") || strings.EqualFold(ext, ".markdown")
+	return strings.EqualFold(ext, ".md") || strings.EqualFold(ext, ".markdown") || strings.EqualFold(ext, ".mdx")
 }
 
 func canPreview(d *document) bool { return isSVG(d) || isMarkdown(d) }

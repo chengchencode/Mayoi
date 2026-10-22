@@ -253,8 +253,12 @@ func (a *app) openFileIn(col *column, at int, path string, focus bool) {
 		}
 	}
 	at = min(max(at, 0), len(col.tabs))
-	a.addTab(col, at, &colTab{ed: newEditor(doc), transient: a.opening})
+	t := &colTab{ed: newEditor(doc), transient: a.opening}
+	a.addTab(col, at, t)
 	a.activate(col, at, focus)
+	if a.settings.MarkdownPreview && isMarkdown(t.ed.document) {
+		a.setPreview(t.ed, true)
+	}
 }
 
 // showingFile returns the place of the tab of the column that shows the

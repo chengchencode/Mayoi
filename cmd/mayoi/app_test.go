@@ -159,6 +159,8 @@ type harness struct {
 func newHarness(t testing.TB, dark bool) *harness {
 	root := workspaceFixture(t)
 	s := settings.Default()
+	// The tests open Markdown as text, the editor they drive.
+	s.MarkdownPreview = false
 	w := s.NewWindow()
 	w.Folder = root
 	h := &fakeHost{folder: root}

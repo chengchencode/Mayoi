@@ -5,6 +5,12 @@ needs a `## <version>` section here, or its build fails.
 
 ## Unreleased
 
+- Markdown files, .mdx included, open rendered rather than as text:
+  **View → Preview Markdown on Open**, the `"markdownPreview"` setting
+  true by default, previews each one it opens; **⇧⌘V** still shows the
+  text, and a tab keeps the choice it was left in for the session. MDX
+  previews as Markdown does — imports and JSX elements degrade to their
+  text, the rest renders.
 - The fork panel, on the personal branch only: **Fork → Fork Panel** opens
   the fork's whole git workflow — syncing upstream, status, branches and
   their bases, pushes, PRs upstream or stacked in the fork, rebases onto

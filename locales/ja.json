@@ -218,6 +218,7 @@
   "cmdViewExplorer": "エクスプローラー",
   "cmdViewLocaleSystem": "システムの言語",
   "cmdViewLockColumn": "列のロックの切り替え",
+  "cmdViewMarkdownPreview": "Markdown を既定でプレビュー",
   "cmdViewMoveTabNext": "タブを次の列へ移動",
   "cmdViewMoveTabPrev": "タブを前の列へ移動",
   "cmdViewNewTerminal": "新しいターミナル",

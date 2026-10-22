@@ -209,6 +209,44 @@ func TestMarkdownPreview(t *testing.T) {
 	hs.until("long extension", func() bool { return a.activeEditor().preview.loaded })
 }
 
+func TestMarkdownPreviewOnOpen(t *testing.T) {
+	hs := newHarness(t, true)
+	a := hs.a
+	a.settings.MarkdownPreview = true
+	a.openFile(hs.path("README.md"), true)
+	hs.until("Markdown preview", func() bool {
+		return a.activeEditor().preview != nil && a.activeEditor().preview.loaded
+	})
+	if !hs.tt.HasText("Mayoi") {
+		t.Fatal("heading not shown")
+	}
+	a.run("view.togglePreview")
+	hs.settle()
+	if a.activeEditor().preview != nil {
+		t.Fatal("source toggle failed")
+	}
+	// .mdx previews the same way.
+	path := hs.path("page.mdx")
+	os.WriteFile(path, []byte("import { Chart } from './x'\n\n# Page\n\n<Chart />\n\nText {expr}.\n"), 0o644)
+	a.openFile(path, true)
+	hs.until("MDX preview", func() bool {
+		return a.activeEditor().preview != nil && a.activeEditor().preview.loaded
+	})
+	hs.settle()
+	if !hs.tt.HasText("Page") || !hs.tt.HasText("Text {expr}.") {
+		t.Fatal("MDX did not render")
+	}
+	// The setting off opens the text.
+	a.settings.MarkdownPreview = false
+	path = hs.path("plain.md")
+	os.WriteFile(path, []byte("# Plain\n"), 0o644)
+	a.openFile(path, true)
+	hs.settle()
+	if a.activeEditor().preview != nil {
+		t.Fatal("markdownPreview off still previewed")
+	}
+}
+
 func TestMarkdownPreviewColumn(t *testing.T) {
 	hs := newHarness(t, true)
 	a := hs.a
@@ -219,7 +257,9 @@ func TestMarkdownPreviewColumn(t *testing.T) {
 	}
 	a.openFile(hs.path("README.md"), true)
 	a.run("view.togglePreview")
-	hs.until("preview", func() bool { return a.activeEditor().preview.loaded })
+	hs.until("preview", func() bool {
+		return a.activeEditor().preview != nil && a.activeEditor().preview.loaded
+	})
 	for _, layout := range []struct {
 		name   string
 		width  int
