@@ -224,6 +224,16 @@ func (a *app) openFile(path string, focus bool) {
 	a.openFileIn(col, col.active+1, path, focus)
 }
 
+// openText has open run with openingText set, so a file it opens shows
+// its text, whatever markdownPreview says. The flag goes back to what it
+// was when open returns, a nested call included.
+func (a *app) openText(open func()) {
+	was := a.openingText
+	a.openingText = true
+	defer func() { a.openingText = was }()
+	open()
+}
+
 // openFileIn shows a file in a tab of a column, opening one at place at
 // unless the column has one.
 func (a *app) openFileIn(col *column, at int, path string, focus bool) {
@@ -1042,9 +1052,7 @@ func (a *app) restoreTabs() {
 				// A remote file that is gone closes its tab once read.
 				if _, err := os.Stat(ts.File); err == nil || remote.Is(ts.File) {
 					a.opening = ts.Transient
-					a.openingText = true
-					a.openFileIn(col, len(col.tabs), ts.File, false)
-					a.openingText = false
+					a.openText(func() { a.openFileIn(col, len(col.tabs), ts.File, false) })
 					a.opening = false
 				}
 			case ts.Untitled != "":

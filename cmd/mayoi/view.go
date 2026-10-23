@@ -43,6 +43,7 @@ func (a *app) view(c *ui.Context) {
 	// project moves to another window.
 	a.setServices(c.Services())
 	a.review.ctx = c
+	// Restoring a preview uses font metrics to recover its scroll position.
 	if p := a.settings.Prefs; !a.font.is(p) {
 		a.font = newCodeFont(p)
 	}

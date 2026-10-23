@@ -203,33 +203,94 @@ func isMarkdown(d *document) bool {
 
 func canPreview(d *document) bool { return isSVG(d) || isMarkdown(d) || isMermaid(d) }
 
-// markdownMdx blanks the import and export lines of an .mdx source
-// outside its code fences, keeping its line count. A statement left
-// across lines, as an exported object, can leave a line behind.
+// markdownMdx blanks top-level MDX import/export blocks until a blank
+// line, preserving line endings and code fences.
 func markdownMdx(source []byte) []byte {
 	var out strings.Builder
 	out.Grow(len(source))
-	fence := ""
-	for _, line := range strings.SplitAfter(string(source), "\n") {
-		trim := strings.TrimLeft(line, " \t")
-		if strings.HasPrefix(trim, "```") || strings.HasPrefix(trim, "~~~") {
-			mark := trim[:3]
-			if fence == "" {
-				fence = mark
-			} else if fence == mark {
-				fence = ""
-			}
-		} else if fence == "" && len(line)-len(trim) <= 3 &&
-			(strings.HasPrefix(trim, "import ") || strings.HasPrefix(trim, "export ")) {
-			if strings.HasSuffix(line, "\n") {
-				line = "\n"
-			} else {
-				line = ""
-			}
+	s := string(source)
+	var fence byte // the ` or ~ an open fence is of, 0 when none is
+	fenceLen := 0
+	inJS := false
+	// afterBlank is whether the line before was blank or there is none,
+	// blank being of the source's lines, not of what blanking made.
+	afterBlank := true
+	for len(s) > 0 {
+		line := s
+		if i := strings.IndexByte(s, '\n'); i >= 0 {
+			line, s = s[:i+1], s[i+1:]
+		} else {
+			s = ""
 		}
-		out.WriteString(line)
+		// body is the line's text, term its end as the file has it.
+		body, term := line, ""
+		if strings.HasSuffix(body, "\r\n") {
+			body, term = body[:len(body)-2], "\r\n"
+		} else if strings.HasSuffix(body, "\n") {
+			body, term = body[:len(body)-1], "\n"
+		}
+		spaces := 0
+		for spaces < len(body) && body[spaces] == ' ' {
+			spaces++
+		}
+		indented := spaces > 3 || spaces < len(body) && body[spaces] == '\t'
+		rest := body[spaces:]
+		wasBlank := strings.TrimSpace(body) == ""
+		switch {
+		case inJS:
+			if wasBlank {
+				inJS = false
+				out.WriteString(line)
+			} else {
+				out.WriteString(term)
+			}
+		case fence != 0:
+			out.WriteString(line)
+			if !indented && fenceCloses(rest, fence, fenceLen) {
+				fence = 0
+			}
+		case !indented && fenceOpens(rest):
+			fence, fenceLen = rest[0], fenceRun(rest)
+			out.WriteString(line)
+		case !indented && afterBlank &&
+			(strings.HasPrefix(rest, "import ") || strings.HasPrefix(rest, "export ")):
+			inJS = true
+			out.WriteString(term)
+		default:
+			out.WriteString(line)
+		}
+		afterBlank = wasBlank
 	}
 	return []byte(out.String())
+}
+
+// fenceRun is how long the run of ` or ~ the text starts with is.
+func fenceRun(rest string) int {
+	n := 0
+	for n < len(rest) && rest[n] == rest[0] {
+		n++
+	}
+	return n
+}
+
+// fenceOpens reports whether the text opens a code fence: a run of three
+// or more ` or ~. A backtick fence's info may not hold another backtick;
+// a tilde fence's may.
+func fenceOpens(rest string) bool {
+	if len(rest) < 3 || rest[0] != '`' && rest[0] != '~' {
+		return false
+	}
+	n := fenceRun(rest)
+	return n >= 3 && (rest[0] != '`' || !strings.ContainsRune(rest[n:], '`'))
+}
+
+// fenceCloses reports whether text is a valid closing fence.
+func fenceCloses(rest string, ch byte, n int) bool {
+	if len(rest) == 0 || rest[0] != ch {
+		return false
+	}
+	run := fenceRun(rest)
+	return run >= n && strings.TrimSpace(rest[run:]) == ""
 }
 
 // markdownPath resolves local destinations without fetching remote resources.

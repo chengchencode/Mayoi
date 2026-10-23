@@ -591,13 +591,13 @@ func (a *app) searchRows() []searchRow {
 // of its own with the keyboard.
 func (a *app) openMatch(f *searchFile, m searchMatch, keep bool) {
 	// The match is in the text, whatever markdownPreview says.
-	a.openingText = true
-	defer func() { a.openingText = false }()
-	if keep {
-		a.openFile(f.path, true)
-	} else {
-		a.previewFile(f.path)
-	}
+	a.openText(func() {
+		if keep {
+			a.openFile(f.path, true)
+		} else {
+			a.previewFile(f.path)
+		}
+	})
 	a.selectMatch(f.path, m)
 }
 
