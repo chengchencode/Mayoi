@@ -121,3 +121,23 @@ func TestDirs(t *testing.T) {
 		t.Errorf("off the path: %v", got)
 	}
 }
+
+// Opened from the Finder, the app has the system's folders only: the login
+// shell's come first, and none twice.
+func TestShellPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("a shell script")
+	}
+	tools := t.TempDir()
+	sh := filepath.Join(t.TempDir(), "zsh")
+	script := "#!/bin/sh\nPATH=" + tools + ":/usr/bin:$PATH; export PATH; shift; exec /bin/sh -c \"$1\"\n"
+	if err := os.WriteFile(sh, []byte(script), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("SHELL", sh)
+	t.Setenv("PATH", "/usr/bin:/bin:/usr/sbin:/sbin")
+	want := []string{tools, "/usr/bin", "/bin", "/usr/sbin", "/sbin"}
+	if got := ShellPath(); !slices.Equal(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}

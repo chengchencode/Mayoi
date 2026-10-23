@@ -299,6 +299,13 @@ func main() {
 	if dir, err := mygo.App.Path(mygo.PathUserData); err == nil {
 		keepCrashes(dir)
 	}
+	// Opened from the Finder or the Dock, Mayoi has the system's PATH
+	// only; git, its hooks and what else Mayoi runs look for commands
+	// where the user's shell does. In the background, as a slow shell
+	// would hold up the window.
+	if runtime.GOOS != "windows" && os.Getenv("MAYOI_SNAPSHOT") == "" {
+		go func() { os.Setenv("PATH", strings.Join(cli.ShellPath(), string(os.PathListSeparator))) }()
+	}
 	// Release builds check for updates every hour (startUpdates) and show
 	// them in the window, whose click opens MyGo's update window; the
 	// updater never checks by itself. Development builds never check.

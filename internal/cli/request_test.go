@@ -4,25 +4,31 @@ import (
 	"errors"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
 func TestParse(t *testing.T) {
 	cwd := filepath.FromSlash("/w")
 	abs := func(p string) string { return filepath.Join(cwd, p) }
+	// A path absolute on this system: /x has no drive on Windows.
+	x, b := "/x", "/b"
+	if runtime.GOOS == "windows" {
+		x, b = `C:\x`, `C:\b`
+	}
 	for _, c := range []struct {
 		args []string
 		want Request
 	}{
 		{nil, Request{}},
-		{[]string{".", "a b.go", "/x"}, Request{Paths: []Target{{Path: cwd}, {Path: abs("a b.go")}, {Path: "/x"}}}},
+		{[]string{".", "a b.go", x}, Request{Paths: []Target{{Path: cwd}, {Path: abs("a b.go")}, {Path: x}}}},
 		// Colons are part of a name without -g.
 		{[]string{"a:3"}, Request{Paths: []Target{{Path: abs("a:3")}}}},
 		{[]string{"-g", "a.go:3", "--goto=b:c.go:4:5", "-g", "d.go"}, Request{Paths: []Target{
 			{Path: abs("a.go"), Line: 3}, {Path: abs("b:c.go"), Line: 4, Col: 5}, {Path: abs("d.go")},
 		}}},
 		{[]string{"-n", "-w", "msg"}, Request{NewWindow: true, Wait: true, Paths: []Target{{Path: abs("msg")}}}},
-		{[]string{"-d", "a", "/b"}, Request{Diff: []string{abs("a"), "/b"}}},
+		{[]string{"-d", "a", b}, Request{Diff: []string{abs("a"), b}}},
 		{[]string{"--remote", "box:/srv/app"}, Request{Remote: "box:/srv/app"}},
 		{[]string{"--", "-n"}, Request{Paths: []Target{{Path: abs("-n")}}}},
 		{[]string{"run", "view.terminal", "file.openFolder=..", "--window", "p"}, Request{Window: abs("p"), Run: []Command{

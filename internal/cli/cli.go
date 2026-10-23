@@ -160,9 +160,9 @@ func runAsAdmin(cmd string) error {
 func shellQuote(s string) string { return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'" }
 
 // ShellPath is where the user's shell looks for commands, which an app
-// opened from the Finder does not inherit: the login shell says.
+// opened from the Finder does not inherit: the login shell's folders
+// first, in its order, then those of PATH it lacks.
 func ShellPath() []string {
-	path := filepath.SplitList(os.Getenv("PATH"))
 	sh := os.Getenv("SHELL")
 	if sh == "" {
 		sh = "/bin/zsh"
@@ -171,13 +171,18 @@ func ShellPath() []string {
 	defer cancel()
 	const mark = "MAYOI_PATH="
 	out, _ := exec.CommandContext(ctx, sh, "-ilc", `echo "`+mark+`$PATH"`).Output()
+	var all []string
 	for line := range strings.Lines(string(out)) {
 		if p, ok := strings.CutPrefix(strings.TrimSpace(line), mark); ok {
-			path = append(path, filepath.SplitList(p)...)
+			all = append(all, filepath.SplitList(p)...)
 		}
 	}
-	for i, p := range path {
-		path[i] = filepath.Clean(p)
+	all = append(all, filepath.SplitList(os.Getenv("PATH"))...)
+	var path []string
+	for _, p := range all {
+		if p = filepath.Clean(p); p != "." && !slices.Contains(path, p) {
+			path = append(path, p)
+		}
 	}
 	return path
 }
