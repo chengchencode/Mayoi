@@ -198,10 +198,39 @@ type markdownBlock struct {
 
 func isMarkdown(d *document) bool {
 	ext := filepath.Ext(d.path)
-	return strings.EqualFold(ext, ".md") || strings.EqualFold(ext, ".markdown")
+	return strings.EqualFold(ext, ".md") || strings.EqualFold(ext, ".markdown") || strings.EqualFold(ext, ".mdx")
 }
 
 func canPreview(d *document) bool { return isSVG(d) || isMarkdown(d) || isMermaid(d) }
+
+// markdownMdx blanks the import and export lines of an .mdx source
+// outside its code fences, keeping its line count. A statement left
+// across lines, as an exported object, can leave a line behind.
+func markdownMdx(source []byte) []byte {
+	var out strings.Builder
+	out.Grow(len(source))
+	fence := ""
+	for _, line := range strings.SplitAfter(string(source), "\n") {
+		trim := strings.TrimLeft(line, " \t")
+		if strings.HasPrefix(trim, "```") || strings.HasPrefix(trim, "~~~") {
+			mark := trim[:3]
+			if fence == "" {
+				fence = mark
+			} else if fence == mark {
+				fence = ""
+			}
+		} else if fence == "" && len(line)-len(trim) <= 3 &&
+			(strings.HasPrefix(trim, "import ") || strings.HasPrefix(trim, "export ")) {
+			if strings.HasSuffix(line, "\n") {
+				line = "\n"
+			} else {
+				line = ""
+			}
+		}
+		out.WriteString(line)
+	}
+	return []byte(out.String())
+}
 
 // markdownPath resolves local destinations without fetching remote resources.
 // A leading / means root, as it means the repository's on GitHub, or the
@@ -503,6 +532,11 @@ func parseMarkdown(source []byte, path, root string, current func() bool, caches
 		}
 	}
 
+	// An .mdx file's top-level import and export statements blank out:
+	// they are code, not text the preview shows.
+	if strings.EqualFold(filepath.Ext(path), ".mdx") {
+		source = markdownMdx(source)
+	}
 	tree := markdownParser(c.math).Parse(text.NewReader(source))
 	// starts are where the lines of source start, for the line of a block.
 	starts := []int{0}

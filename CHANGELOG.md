@@ -25,6 +25,17 @@ needs a `## <version>` section here, or its build fails.
 - Scrolling a file of over 6,000 lines colors the lines ahead before they come into view.
 - Typing recolors the edited lines with less work, and windows with many tabs draw with less.
 - File tabs gain a **Copy Relative Path** option in their context menu.
+- Restoring a Markdown preview or reopening a closed one keeps its scroll
+  position, with Preview Markdown on Open on or off.
+- Reopening an already-open tab preserves its current preview choice;
+  offline remote tabs retain their saved preview choice and position.
+- The View menu separates preview controls from Vim Mode and Project Tabs.
+- Markdown files, .mdx included, can open rendered rather than as text:
+  **View → Preview Markdown on Open**, the `"markdownPreview"` setting,
+  previews each one it opens; **⇧⌘V** still shows the text, and a tab
+  keeps the choice it was left in for the session. MDX previews as
+  Markdown does — its top-level `import` and `export` lines drop, JSX
+  elements degrade to their text, the rest renders.
 
 ## 0.12.3
 

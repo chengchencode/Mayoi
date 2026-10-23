@@ -121,6 +121,9 @@ type Prefs struct {
 	// PreviewMath draws the TeX math of a Markdown preview, between $ and
 	// $, $$ and $$, or in a block of math, as the formulas it makes.
 	PreviewMath bool `json:"previewMath"`
+	// MarkdownPreview opens a Markdown file, .mdx included, rendered
+	// rather than as text; ⇧⌘V still shows the text.
+	MarkdownPreview bool `json:"markdownPreview,omitempty"`
 	// DiffLayout is how diffs show: "split" side by side, "inline" in
 	// one column, or "" side by side when they are wide enough to.
 	DiffLayout string `json:"diffLayout,omitempty"`

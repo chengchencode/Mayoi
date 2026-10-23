@@ -50,6 +50,35 @@ func TestRemoteFileOffline(t *testing.T) {
 	}
 }
 
+func TestRemoteMarkdownPreviewOfflineRestore(t *testing.T) {
+	remoteOnly(t)
+	for _, preview := range []bool{false, true} {
+		t.Run(map[bool]string{false: "source", true: "preview"}[preview], func(t *testing.T) {
+			hs := newHarness(t, true)
+			s := settings.Default()
+			s.MarkdownPreview = !preview
+			w := s.NewWindow()
+			w.Folder = hs.root
+			path := remote.Path("offline.invalid", "/srv/app/README.md")
+			w.Columns = []settings.Column{{Weight: 1, Tabs: []settings.Tab{{File: path, Preview: preview, Sel: [2]int{12, 15}, ScrollY: 400}}}}
+			for range 2 {
+				a := newApp(&fakeHost{folder: hs.root}, s, w)
+				t.Cleanup(a.shutdown)
+				bh := &harness{t: t, a: a, root: hs.root, tt: ui.NewTester(a.view, 1200, 760)}
+				bh.until("offline restored tab", func() bool {
+					d := a.activeEditor()
+					return d != nil && errors.Is(d.loadErr, remote.ErrOffline)
+				})
+				a.rememberTabs()
+				saved := w.Columns[0].Tabs[0]
+				if saved.Preview != preview || saved.Sel != [2]int{12, 15} || saved.ScrollY != 400 {
+					t.Fatalf("offline restore lost saved state: %+v", saved)
+				}
+			}
+		})
+	}
+}
+
 // TestRemotePathsShow: a remote path shows as host:/path, and copies as
 // its host spells it.
 func TestRemotePathsShow(t *testing.T) {
