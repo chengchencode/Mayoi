@@ -79,6 +79,46 @@ func TestRemoteMarkdownPreviewOfflineRestore(t *testing.T) {
 	}
 }
 
+// A Markdown file made anew on a host opens as its source, to edit, the
+// markdownPreview preference notwithstanding; an ordinary remote open of
+// an existing one still previews.
+func TestRemoteNewMarkdownFileOpensAsSource(t *testing.T) {
+	t.Setenv("MAYOI_SSH_TEST_HOST", "")
+	hs, c, dir := remoteHarness(t)
+	a, tt := hs.a, hs.tt
+	a.settings.MarkdownPreview = true
+	if _, err := c.Run(nil, `printf '# Readme\n\nRemote words.\n' > "$1/README.md"`, dir); err != nil {
+		t.Fatal(err)
+	}
+	a.askNewEntry(a.root, false)
+	hs.settle()
+	tt.Type("notes.md")
+	tt.Key(0, ui.KeyEnter)
+	hs.untilLong("the new remote file", func() bool {
+		d := a.activeEditor()
+		return d != nil && d.path == hs.path("notes.md") && !d.loading && d.loadErr == nil
+	})
+	d := a.activeEditor()
+	if d.preview != nil {
+		t.Fatal("a new remote Markdown file opened previewed")
+	}
+	tt.Type("# hello")
+	hs.settle()
+	if got := d.buf.String(); got != "# hello" {
+		t.Fatalf("the new remote file holds %q", got)
+	}
+	a.saveDoc(d.document, nil)
+	hs.untilLong("the save", func() bool { return !d.saving && !d.dirty() })
+	if got, err := c.ReadFile(dir+"/notes.md", 0); err != nil || string(got) != "# hello" {
+		t.Fatalf("on the host: %q, %v", got, err)
+	}
+	a.openFile(hs.path("README.md"), true)
+	hs.untilLong("the remote preview", func() bool {
+		d := a.activeEditor()
+		return d != nil && d.path == hs.path("README.md") && !d.loading && d.preview != nil && d.preview.loaded
+	})
+}
+
 // TestRemotePathsShow: a remote path shows as host:/path, and copies as
 // its host spells it.
 func TestRemotePathsShow(t *testing.T) {

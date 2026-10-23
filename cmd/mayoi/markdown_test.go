@@ -170,6 +170,88 @@ func TestMarkdownBlocks(t *testing.T) {
 	}
 }
 
+// markdownMdx drops an .mdx file's top-level ESM blocks, keeping its
+// line count and ends, and leaves code fences and mid-paragraph text
+// alone.
+func TestMarkdownMdx(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"import", "import a from 'a'\n\n# T\n", "\n\n# T\n"},
+		{"multiline import", "import {\n  A,\n  B\n} from 'x'\n\n# T\n", "\n\n\n\n\n# T\n"},
+		{"multiline export object", "export default {\n  a: 1\n}\n\nText.\n", "\n\n\n\nText.\n"},
+		{"blocks split by a blank", "import a\n\nexport b\n\n# T\n", "\n\n\n\n# T\n"},
+		{"runs until a blank", "import a\n# T\n", "\n\n"},
+		{"paragraph continuation", "Text.\nexport const x = 1\nimport y\n\n# T\n", "Text.\nexport const x = 1\nimport y\n\n# T\n"},
+		{"first line blank", "\nimport x\n", "\n\n"},
+		{"a blank separator keeps its blanks", "import a\n   \n# T\n", "\n   \n# T\n"},
+		{"last line without a newline", "import a\nexport b", "\n"},
+		{"only line without a newline", "export x", ""},
+		{"crlf ends", "import a\r\nexport b\r\n\r\n# T\r\n", "\r\n\r\n\r\n# T\r\n"},
+		{"backtick fence", "```\nimport x\n```\n\nimport y\n", "```\nimport x\n```\n\n\n"},
+		{"tilde fence", "~~~\nexport z\n~~~\n\nexport w\n", "~~~\nexport z\n~~~\n\n\n"},
+		{"four hold three", "````\n```\nimport x\n```\n````\n\nimport y\n", "````\n```\nimport x\n```\n````\n\n\n"},
+		{"nested", "````md\n```js\n\nimport x from 'y'\n```\n\nimport z from 'w'\n````\n\nimport end\n", "````md\n```js\n\nimport x from 'y'\n```\n\nimport z from 'w'\n````\n\n\n"},
+		{"info close invalid", "```js\n```oops\n\nimport x\n", "```js\n```oops\n\nimport x\n"},
+		{"wrong char close invalid", "```\n~~~\n\nexport x\n", "```\n~~~\n\nexport x\n"},
+		{"overindented close invalid", "```\n    ```\n\nimport x\n", "```\n    ```\n\nimport x\n"},
+		{"tab-indented close invalid", "```\n\t```\n\nimport x\n", "```\n\t```\n\nimport x\n"},
+		{"info never closes", "```\nimport x\n``` js\nimport y\n", "```\nimport x\n``` js\nimport y\n"},
+		{"the other mark stays open", "```\nx\n~~~\nimport y\n", "```\nx\n~~~\nimport y\n"},
+		{"a longer close closes", "```\nx\n````\n\nimport y\n", "```\nx\n````\n\n\n"},
+		{"indented is code", "    import x\n\texport y\n\n    ```\n    import z\n    ```\n", "    import x\n\texport y\n\n    ```\n    import z\n    ```\n"},
+		{"fences in ESM mean nothing", "import a\n```\ncode\n```\nconst y = 1\n\n# T\n", "\n\n\n\n\n\n# T\n"},
+		{"spaces may indent", "   import x\n", "\n"},
+		{"backtick info holds no backtick", "``` `x`\nimport y\n\n```\n", "``` `x`\nimport y\n\n```\n"},
+		{"tilde info may hold one", "~~~ `x`\nimport y\n~~~\n", "~~~ `x`\nimport y\n~~~\n"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			got := markdownMdx([]byte(c.in))
+			if string(got) != c.want {
+				t.Errorf("markdownMdx(%q)\n= %q\nwant %q", c.in, got, c.want)
+			}
+			if n, m := strings.Count(string(got), "\n"), strings.Count(c.in, "\n"); n != m {
+				t.Errorf("newlines %d, want the source's %d", n, m)
+			}
+		})
+	}
+}
+
+// An .mdx file's parse drops its ESM blocks but keeps the lines they
+// stood on, a heading keeping its source line; the same text in a .md
+// file parses as it is.
+func TestMarkdownMdxParse(t *testing.T) {
+	src := "import {\n  Chart\n} from './x'\nexport const y = 1\n\n# Title\n\nSome text.\n"
+	path := filepath.Join(t.TempDir(), "page")
+	blocks := parseMarkdown([]byte(src), path+".mdx", "", nil)
+	var title *markdownBlock
+	for i := range blocks {
+		for _, r := range blocks[i].runs {
+			if strings.Contains(r.text, "import") || strings.Contains(r.text, "export") ||
+				strings.Contains(r.text, "Chart") || strings.Contains(r.text, "./x") {
+				t.Fatalf("ESM text shows: %+v", blocks[i])
+			}
+		}
+		if blocks[i].kind == markdownHeading {
+			title = &blocks[i]
+		}
+	}
+	if title == nil || title.line != 5 || markdownRunsText(title.runs) != "Title" {
+		t.Fatalf("the heading after the ESM: %+v", title)
+	}
+	found := false
+	for _, b := range parseMarkdown([]byte(src), path+".md", "", nil) {
+		for _, r := range b.runs {
+			found = found || strings.Contains(r.text, "import")
+		}
+	}
+	if !found {
+		t.Fatal("a .md file lost its import text")
+	}
+}
+
 func TestMarkdownPreview(t *testing.T) {
 	hs := newHarness(t, true)
 	a := hs.a
@@ -272,22 +354,18 @@ func TestMarkdownPreviewKeepsSource(t *testing.T) {
 
 	b := newApp(&fakeHost{folder: hs.root}, a.settings, a.window)
 	t.Cleanup(b.shutdown)
-	bt := ui.NewTester(b.view, 1200, 760)
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) {
-		step(bt)
-		if len(b.cols) > 0 && b.cols[0].tab() != nil && b.cols[0].tab().ed != nil {
-			break
-		}
-		time.Sleep(5 * time.Millisecond)
-	}
-	if b.cols[0].tab().ed.preview != nil {
+	hs = &harness{t: t, a: b, root: hs.root, tt: ui.NewTester(b.view, 1200, 760)}
+	a = b
+	hs.until("the tab restored", func() bool {
+		return len(a.cols) > 0 && a.cols[0].tab() != nil && a.cols[0].tab().ed != nil
+	})
+	if a.cols[0].tab().ed.preview != nil {
 		t.Fatal("restore previewed a tab left as source")
 	}
-	b.run("file.close")
-	b.run("file.reopenClosed")
-	step(bt)
-	if b.activeEditor() == nil || b.activeEditor().preview != nil {
+	a.run("file.close")
+	a.run("file.reopenClosed")
+	hs.settle()
+	if a.activeEditor() == nil || a.activeEditor().preview != nil {
 		t.Fatal("reopen previewed a tab closed as source")
 	}
 }

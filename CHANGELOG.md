@@ -5,17 +5,14 @@ needs a `## <version>` section here, or its build fails.
 
 ## Unreleased
 
-- Restoring a Markdown preview or reopening a closed one keeps its scroll
-  position, with Preview Markdown on Open on or off.
-- Reopening an already-open tab preserves its current preview choice;
-  offline remote tabs retain their saved preview choice and position.
-- The View menu separates preview controls from Vim Mode and Project Tabs.
-- Markdown files, .mdx included, can open rendered rather than as text:
-  **View → Preview Markdown on Open**, the `"markdownPreview"` setting,
-  previews each one it opens; **⇧⌘V** still shows the text, and a tab
-  keeps the choice it was left in for the session. MDX previews as
-  Markdown does — its top-level `import` and `export` lines drop, JSX
-  elements degrade to their text, the rest renders.
+- Markdown files, including `.mdx`, can open rendered with **View →
+  Preview Markdown on Open** (`"markdownPreview"`). **⇧⌘V** shows the
+  source; new files and search or line jumps open as text. MDX previews
+  omit top-level `import` and `export` blocks without changing code
+  examples or paragraph text.
+- Restored and reopened Markdown tabs keep their source or preview
+  choice and scroll position, including remote tabs restored while
+  offline.
 
 ## 0.11.11
 

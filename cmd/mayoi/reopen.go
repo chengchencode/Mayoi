@@ -112,9 +112,13 @@ func (a *app) reopenClosed() {
 			continue
 		}
 		n := len(col.tabs)
-		a.openingText = col.showingFile(c.path) < 0
-		a.openFileIn(col, c.at, c.path, true)
-		a.openingText = false
+		// A file shown already keeps the preview it has; a fresh open is
+		// text first, its saved preview restored below.
+		if col.showingFile(c.path) < 0 {
+			a.openText(func() { a.openFileIn(col, c.at, c.path, true) })
+		} else {
+			a.openFileIn(col, c.at, c.path, true)
+		}
 		if len(col.tabs) == n {
 			a.dropColumn(col, made)
 			// The column showed it already, or it could not open.
