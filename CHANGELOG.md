@@ -3,6 +3,20 @@
 The update window shows the section of the version it offers. Every release
 needs a `## <version>` section here, or its build fails.
 
+## Unreleased
+
+- Restoring a Markdown preview or reopening a closed one keeps its scroll
+  position, with Preview Markdown on Open on or off.
+- Reopening an already-open tab preserves its current preview choice;
+  offline remote tabs retain their saved preview choice and position.
+- The View menu separates preview controls from Vim Mode and Project Tabs.
+- Markdown files, .mdx included, can open rendered rather than as text:
+  **View → Preview Markdown on Open**, the `"markdownPreview"` setting,
+  previews each one it opens; **⇧⌘V** still shows the text, and a tab
+  keeps the choice it was left in for the session. MDX previews as
+  Markdown does — its top-level `import` and `export` lines drop, JSX
+  elements degrade to their text, the rest renders.
+
 ## 0.11.11
 
 - The welcome page has a **Star on GitHub** link at its foot, which opens

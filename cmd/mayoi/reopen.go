@@ -112,7 +112,9 @@ func (a *app) reopenClosed() {
 			continue
 		}
 		n := len(col.tabs)
+		a.openingText = col.showingFile(c.path) < 0
 		a.openFileIn(col, c.at, c.path, true)
+		a.openingText = false
 		if len(col.tabs) == n {
 			a.dropColumn(col, made)
 			// The column showed it already, or it could not open.
@@ -122,9 +124,7 @@ func (a *app) reopenClosed() {
 			ed.sel, ed.caret = c.sel, c.caret
 			ed.vscroll.Y, ed.hscroll.X = c.y, c.x
 			ed.wrap, ed.wrapGen = c.wrap, c.wrapGen
-			if c.preview {
-				a.setPreview(ed, true)
-			}
+			a.setPreview(ed, c.preview)
 			a.focusTab(col.tab())
 		}
 		return
