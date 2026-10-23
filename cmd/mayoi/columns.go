@@ -612,6 +612,7 @@ func (a *app) dropTab(t *colTab) {
 		if len(doc.views) == 0 {
 			doc.hl.Close()
 			a.docs = slices.DeleteFunc(a.docs, func(d *document) bool { return d == doc })
+			a.docClosed(doc)
 			if a.tree != nil && doc.path != "" {
 				a.tree.Unwatch(doc.path)
 			}

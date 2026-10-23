@@ -564,8 +564,25 @@ Debian package in `/usr/bin`.
 - `mayoi .` opens the current folder, in a new window or the one that already has it, or with project tabs in a new
   tab.
 - `mayoi <file>` opens a file in the window whose folder contains it.
+- `mayoi -g <file:line[:column]>` opens a file with the caret at a line and column.
+- `mayoi -d <file> <file>` compares two files, side by side or inline as the diffs are set to show.
+- `mayoi -n [folder or file]...` opens them in a new window, and with nothing, a new empty window.
+- `mayoi -w <file>...` returns once the files are closed, so that `git config core.editor "mayoi -w"` edits commit
+  messages in Mayoi.
+- `mayoi --remote <host:/path>` opens a folder on an SSH host.
+- `mayoi run <command>...` runs commands by the identifiers that `keybindings.json` names them by, in order, as
+  `mayoi run view.terminal git.pull`. Some take an argument after `=` in place of what they would ask in the window:
+  `file.openFolder=<folder>`, `file.openFolderWindow=<folder>`, `file.saveAs=<file>`, `go.line=<line[:column]>`,
+  `go.quickOpen=<text>`, `view.selectTheme=<theme>` and `remote.forwardPort=<port>`. An unknown command, or an
+  argument one doesn't take, runs none of them.
+- `mayoi commands` lists the commands, a line for each, with its identifier, name, shortcut and argument, apart by
+  tabs.
+- `mayoi --help` lists the options, and `mayoi --version` prints the version.
 
-The command returns immediately, and starts Mayoi if it isn't running.
+A command acts on the window whose folder contains the directory it runs in, else the one in front; `--window
+<folder>` picks the window that has the folder open. The command returns as soon as Mayoi has done what it asked, but
+with `-w`, and starts Mayoi if it isn't running. When something goes wrong, it says so and exits with status 1, or 2
+for options it doesn't know. A `mayoi` command an older Mayoi installed is brought up to date as Mayoi starts.
 
 ## Appearance and persistence
 

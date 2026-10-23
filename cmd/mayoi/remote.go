@@ -626,6 +626,7 @@ func (a *app) loadingView(c *ui.Context, d *editor) {
 // shutdown stops watching the folder and lets go of its connection, as
 // the project closes for good.
 func (a *app) shutdown() {
+	a.docClosed(nil)
 	if a.tree != nil {
 		a.tree.Close()
 	}

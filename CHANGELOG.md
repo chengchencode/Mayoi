@@ -13,6 +13,16 @@ needs a `## <version>` section here, or its build fails.
 - Restored and reopened Markdown tabs keep their source or preview
   choice and scroll position, including remote tabs restored while
   offline.
+- The `mayoi` command runs any command of the window by its identifier,
+  as `mayoi run view.terminal git.pull`, some with an argument, as
+  `mayoi run file.openFolder=~/src`, and `mayoi commands` lists them. It
+  also opens a file at a line with `-g file:line:column`, compares two
+  files with `-d`, opens a new window with `-n`, a folder on an SSH host
+  with `--remote host:/path`, and waits for its files to be closed with
+  `-w`, for `git config core.editor "mayoi -w"`. It acts on the window of
+  the folder it runs in, says what went wrong, and exits non-zero then. A
+  `mayoi` command installed by an older Mayoi is brought up to date as
+  Mayoi starts.
 
 ## 0.11.11
 

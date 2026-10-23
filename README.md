@@ -30,7 +30,8 @@ https://github.com/user-attachments/assets/673e7907-2b2c-4ed6-9093-1ba9633cd61c
 - **Image viewer:** PNG, JPEG, GIF, WebP and BMP
 - **Previews:** a live preview of Markdown and SVG beside the source (⇧⌘V)
 - **Windows:** a window per folder or every folder in one window as project tabs, a welcome page with the recent
-  folders and hosts, Open Recent (⌃R), and a `mayoi` shell command
+  folders and hosts, Open Recent (⌃R), and a `mayoi` shell command that opens files at a line, compares them, waits
+  for them to close and runs any command
 - **Themes:** light and dark, The Matrix with digital rain, and Claude, Qoder and Grok Bot, each in light and dark
 - **Auto save,** and every window reopened as you left it, with its columns, tabs and carets
 - **Settings:** JSON files applied as you save them, with the code's and the terminal's fonts, weight, ligatures and

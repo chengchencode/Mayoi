@@ -1,5 +1,7 @@
-// Package cli installs and uninstalls the mayoi shell command, which opens
-// folders and files in the app.
+// Package cli is the mayoi shell command, which opens folders and files
+// in the app and runs its commands: it installs and uninstalls the
+// command, reads its arguments, and carries them to the running app over
+// a socket.
 package cli
 
 import (
@@ -20,27 +22,23 @@ const bundleID = "dev.mayoi.editor"
 // scriptMark is a line of the mayoi command, by which uninstalling knows it.
 const scriptMark = "# Installed by Mayoi: File > Install 'mayoi' Command."
 
-// script is the mayoi command. It hands its folders and files to the
-// app by its identifier, so it keeps working when the app moves, else to
-// the app at app, where it was installed from; and returns at once: a
-// running Mayoi opens them, or one starts.
+// script is the mayoi command. It runs the app's own executable, which,
+// told so by MAYOI_CLI, asks the running app over its socket, or starts
+// it: the app at app, where it was installed from, else the one the
+// system knows by its identifier, so it keeps working when the app moves.
 func script(app string) string {
-	fallback := ""
-	if app != "" {
-		fallback = " 2>/dev/null || open -a " + shellQuote(app) + ` "$@"`
-	}
 	return `#!/bin/sh
-# mayoi [folder or file]... opens them in Mayoi.
+# mayoi [options] [folder or file]... opens them in Mayoi: mayoi --help says more.
 ` + scriptMark + `
-for p in "$@"; do
-	case $p in
-	/*) ;;
-	*) p=$PWD/$p ;;
-	esac
-	set -- "$@" "$p"
-	shift
-done
-open -b ` + bundleID + ` "$@"` + fallback + `
+app=` + shellQuote(app) + `
+if [ ! -x "$app/Contents/MacOS/Mayoi" ]; then
+	app=$(mdfind "kMDItemCFBundleIdentifier == '` + bundleID + `'" 2>/dev/null | head -n 1)
+fi
+if [ ! -x "$app/Contents/MacOS/Mayoi" ]; then
+	echo "mayoi: Mayoi.app is not found" >&2
+	exit 1
+fi
+MAYOI_CLI=1 exec "$app/Contents/MacOS/Mayoi" "$@"
 `
 }
 
@@ -108,6 +106,19 @@ func writeAsAdmin(dir, app string) error {
 	p := filepath.Join(dir, "mayoi")
 	return runAsAdmin(fmt.Sprintf("mkdir -p %s && cp %s %s && chmod 755 %s",
 		shellQuote(dir), shellQuote(f.Name()), shellQuote(p), shellQuote(p)))
+}
+
+// Refresh writes the command of the app at app over the copies of
+// Mayoi's in dirs that an older Mayoi wrote, where no password is needed.
+func Refresh(dirs []string, app string) {
+	for _, dir := range dirs {
+		p := filepath.Join(dir, "mayoi")
+		data, err := os.ReadFile(p)
+		if err != nil || !strings.Contains(string(data), scriptMark) || string(data) == script(app) {
+			continue
+		}
+		write(dir, app)
+	}
 }
 
 // Uninstall removes the mayoi command from dirs, where it is Mayoi's,
